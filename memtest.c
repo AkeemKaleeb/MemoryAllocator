@@ -13,25 +13,25 @@
 void test1() {
     for(int i = 0; i < 120; i++) {
         void* ptr = malloc(1);
-        printf("obj[%d] is allocated: %d\n", i, ((char)ptr - 16));
+        printf("obj[%d] is allocated: %s\n", i, ((char *)ptr - 16));
 
         free(ptr);
-        printf("obj[%d] is allocated: %d\n", i, ((char)ptr - 16));
+        printf("obj[%d] is freed: %s\n", i, ((char *)ptr - 16));
     }
 }
 
 // Use malloc() to get 120 1-byte objects, storing the pointers in an array, then use free() to deallocate the chunks
 void test2() {
-    char obj[120];
+    char* obj[120];
 
-    for (int i = 0; i < 120; i++) {
+    for (int i = 0; i < 10; i++) {
         obj[i] = malloc(1);
-        printf("obj[%d] is allocated: %d\n", i,((char)obj[i] - 16));
+        printf("obj[%d] is allocated: %s\n", i,((char *)obj[i] - 16));
     }
 
-    for(int i = 0; i < 120; i++) {
+    for(int i = 0; i < 10; i++) {
         free(obj[i]);
-        printf("obj[%d] is allocated: %d\n", i,((char)obj[i] - 16));
+        printf("obj[%d] is freed: %s\n", i,((char *)obj[i] - 16));
     }
 }
 int main(int argc, char **argv)
