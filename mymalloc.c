@@ -103,14 +103,33 @@ void* mymalloc(size_t size, char *file, int line) {             // function to a
 }
 */
     
-//my version of free
+//my version of free - I translated the pseudocode provided to C
 void myfree(void *ptr, char *file, int line) {
+
+    // Attempting to free a NULL Pointer Error
+    if(!ptr) {
+        printf("ERROR: Attempting to free a NULL pointer. (%s:%d)\n", __FILE__, __LINE__);
+        return;
+    }
+
+    // Get a pointer to the metadata
+    Chunk *ptrChunk = (Chunk*)ptr - 1; //casts ptr to Chunk* and moves the ptr back by the size of one metadata structure
+
+    // Check if the pointer is out of range (before the start of the memory or after the end of memory)
+    if((char*)ptrChunk< (char*)memory || (char*)ptrChunk >= (char*)memory + MEMLENGTH) {
+        printf("ERROR: Attempting to free a pointer outside the memory heap. (%s:%d)\n", __FILE__, __LINE__);
+        return;
+    }
+
+    // Check if the chunk is already free
+    if(!ptrChunk>isAllocated) {
+        printf("ERROR: Attempting to free a pointer that is already freed. (%s:%d)\n", __FILE__, __LINE__);
+        return;
+    }
+
     // Attempting to free a NULL Pointer Error
     Chunk* start = (Chunk*) memory;  //start points to the beginning of the portion of the memory array we are examining
                                     //which increments as we traverse through the array
-
-    // Get a pointer to the metadata
-    Chunk *ptrChunk = (Chunk*)ptr - 1; //casts ptr to Chunk* and moves the ptr back by the size of one Chunk structure
 
     while ( (char *) start < (char *) (memory + MEMLENGTH)){
         //if the ptr block is adjacent to the starting block and both blocks are free
@@ -123,21 +142,24 @@ void myfree(void *ptr, char *file, int line) {
                 //merge adjacent blocks <PTR> <NEXT>
                 start->chunkDataSize += ptrChunk->next->chunkDataSize + sizeof(Chunk);
                 start->next = ptrChunk->next->next;
-                //DELETE //ptrChunk->next->isAllocated = 0;
-                return;
             }
+            ptrChunk = NULL; //invalidate pointer
+            return;
         }
+
         if ((char *) start == (char *)ptrChunk){
             if (ptrChunk->next->isAllocated == 0){ 
                 //merge adjacent blocks <PTR> <NEXT>
                 ptrChunk->chunkDataSize += ptrChunk->next->chunkDataSize + sizeof(Chunk);
                 ptrChunk->next = ptrChunk->next->next;
-                ptrChunk->isAllocated = 0;
-                //DELETE //ptrChunk->next->isAllocated = 0;
             }
+            ptrChunk->isAllocated = 0; //marks pointer as free
+            return;
         }
         start = start->next;
     }
+    printf ("ERROR: The specified pointer was not found in heap.(%s:%d)\n", __FILE__, __LINE__);
+    return;
 }
 /* Kaileb's version of free
 void myfree(void *ptr, char *file, int line) {
