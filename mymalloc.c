@@ -25,7 +25,6 @@ typedef struct Metadata {       // 16 byte struct to store the metadata
 void* mymalloc(size_t size, char *file, int line) {             // function to allocate memory in 8 byte chunks to the heap
     size_t alignedSize = ((size + sizeof(Chunk) + 7) & ~7);     // round up to the nearest multiple of 8 for allignment including metadata
 
-
     Chunk *firstChunk = (Chunk*)memory;                         // set up first block for the entire memory region
     if(firstChunk->chunkDataSize == 0) {                        // initialize the memory heap if not already                    
         firstChunk->chunkDataSize = MEMLENGTH - sizeof(Chunk);  // assign data of chunk to the entire, empty heap
@@ -34,10 +33,8 @@ void* mymalloc(size_t size, char *file, int line) {             // function to a
         printf("First Chunk Initialized. Size: %d, Allocated: %d\n", firstChunk->chunkDataSize, firstChunk->isAllocated);
     }
 
-
     Chunk *currentChunk = (Chunk*)memory;                                                   // start search at the beginning of the memory heap
     while(currentChunk != NULL) {                                                           // loop through all of the chunks
-        printf("Checking chunk: isAllocated=%d, chunkDataSize=%d, alignedSize=%zu\n", currentChunk->isAllocated, currentChunk->chunkDataSize, alignedSize);
         if(!currentChunk->isAllocated && currentChunk->chunkDataSize >= alignedSize) {      // check if the current chunk is free and large enough
             printf("Found suitable chunk\n");
             if(currentChunk->chunkDataSize >= alignedSize + sizeof(Chunk)) {                // check if the current chunk can be split into two chunks
@@ -48,60 +45,26 @@ void* mymalloc(size_t size, char *file, int line) {             // function to a
                 newChunk->isAllocated = 0;                                                  // set the end chunk metadata to not allocated
                 newChunk->next = currentChunk->next;                                        // reassign the next chunk positions
                 currentChunk->next = newChunk;
+                currentChunk->chunkDataSize = alignedSize - sizeof(Chunk);
                 printf("New Chunk Created: chunkDataSize=%d\n", newChunk->chunkDataSize);
             }
 
 
             currentChunk->isAllocated = 1;              // former end chunk can now hold data
-            currentChunk->chunkDataSize = alignedSize;  // set the size of the allocated chunk
             printf("Allocated chunk: chunkDataSize=%d\n", currentChunk->chunkDataSize);
             return (void*)(currentChunk + 1);           // returns data stored one chunk length after the start of our current chunk: equivalent to payload location
         }
 
-
         currentChunk = currentChunk->next;              //Moves to the next chunk in the memory heap
     }
-
 
     printf("ERROR: Space not available (%s:%d)\n", __FILE__, __LINE__);
     return NULL;
 }
 
-
 // Free Memory
 //needs to deal with 3 errors: calling free with an address not obtained from malloc, calling free with an address not
 //at the start of the chunk, calling free a second time on the same pointer 
-
-/* The following pseudocode was provided to us in Recitation: 
-
-    void myfree(void ptr) {
-    charstart = memoryStart;
-
-    while (start < memoryEnd) {
-        if (isAdjacentAndFree(start, ptr)) {
-            mergeBlocks(start, ptr);
-            if (isFree(nextBlock(ptr))) {
-                mergeBlocks(start, nextBlock(ptr));
-            }
-            invalidatePointer(ptr);
-            return;
-        }
-
-        if (start == getMetadataStart(ptr)) {
-            if (isFree(nextBlock(ptr))) {
-                mergeBlocks(ptr, nextBlock(ptr));
-            }
-            markAsFree(ptr);
-            invalidatePointer(ptr);
-            return;
-        }
-
-        start = nextBlock(start);
-    }
-
-    exitWithError("Pointer not in heap");
-}
-*/
     
 //my version of free - I translated the pseudocode provided to C
 void myfree(void *ptr, char *file, int line) {
@@ -122,7 +85,7 @@ void myfree(void *ptr, char *file, int line) {
     }
 
     // Check if the chunk is already free
-    if(!ptrChunk>isAllocated) {
+    if(!ptrChunk->isAllocated) {
         printf("ERROR: Attempting to free a pointer that is already freed. (%s:%d)\n", __FILE__, __LINE__);
         return;
     }
@@ -161,46 +124,3 @@ void myfree(void *ptr, char *file, int line) {
     printf ("ERROR: The specified pointer was not found in heap.(%s:%d)\n", __FILE__, __LINE__);
     return;
 }
-/* Kaileb's version of free
-void myfree(void *ptr, char *file, int line) {
-    // Attempting to free a NULL Pointer Error
-    if(!ptr) {
-        printf("ERROR: Attempting to free a NULL pointer. (%s:%d)\n", __FILE__, __LINE__);
-        return;
-    }
-
-
-    // Get a pointer to the metadata
-    Chunk *chunkToFree = (Chunk*)ptr - 1; //casts ptr to Chunk* and moves the ptr back by the size of one Chunk structure
-
-    // Check if the pointer is at the start of a chunk
-    if((char*)chunkToFree < (char*)memory || (char*)chunkToFree >= (char*)memory + MEMLENGTH) {
-        printf("ERROR: Attempting to free a pointer outside the memory heap. (%s:%d)\n", __FILE__, __LINE__);
-        return;
-    }
-
-
-    // Check if the chunk is already free
-    if(!chunkToFree->isAllocated) {
-        printf("ERROR: Attempting to free a pointer that is already freed. (%s:%d)\n", __FILE__, __LINE__);
-        return;
-    }
-
-
-    // Mark the chunk as free;
-    chunkToFree->isAllocated = 0;
-   
-    // Coalesce free blocks
-    Chunk *currentChunk = (Chunk*)memory;
-    while(currentChunk != NULL && currentChunk->next != NULL) { //iterates through the chunks untill you reach the end of the memory heap
-        if(!currentChunk->isAllocated && !currentChunk->next->isAllocated) {
-            // Merge current chunk with the next chunk
-            currentChunk->chunkDataSize += currentChunk->next->chunkDataSize + sizeof(Chunk);
-            currentChunk->next = currentChunk->next->next;
-        }
-
-
-        currentChunk = currentChunk->next;
-    }
-}
-*/
