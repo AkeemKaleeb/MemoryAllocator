@@ -72,50 +72,6 @@ void* mymalloc(size_t size, char *file, int line) {             // function to a
 //needs to deal with 3 errors: calling free with an address not obtained from malloc, calling free with an address not
 //at the start of the chunk, calling free a second time on the same pointer 
 
-/* Kaileb's version of free
-void myfree(void *ptr, char *file, int line) {
-    // Attempting to free a NULL Pointer Error
-    if(!ptr) {
-        printf("ERROR: Attempting to free a NULL pointer. (%s:%d)\n", __FILE__, __LINE__);
-        return;
-    }
-
-
-    // Get a pointer to the metadata
-    Chunk *chunkToFree = (Chunk*)ptr - 1; //casts ptr to Chunk* and moves the ptr back by the size of one Chunk structure
-
-    // Check if the pointer is at the start of a chunk
-    if((char*)chunkToFree < (char*)memory || (char*)chunkToFree >= (char*)memory + MEMLENGTH) {
-        printf("ERROR: Attempting to free a pointer outside the memory heap. (%s:%d)\n", __FILE__, __LINE__);
-        return;
-    }
-
-
-    // Check if the chunk is already free
-    if(!chunkToFree->isAllocated) {
-        printf("ERROR: Attempting to free a pointer that is already freed. (%s:%d)\n", __FILE__, __LINE__);
-        return;
-    }
-
-
-    // Mark the chunk as free;
-    chunkToFree->isAllocated = 0;
-   
-    // Coalesce free blocks
-    Chunk *currentChunk = (Chunk*)memory;
-    while(currentChunk != NULL && currentChunk->next != NULL) { //iterates through the chunks untill you reach the end of the memory heap
-        if(!currentChunk->isAllocated && !currentChunk->next->isAllocated) {
-            // Merge current chunk with the next chunk
-            currentChunk->chunkDataSize += currentChunk->next->chunkDataSize + sizeof(Chunk);
-            currentChunk->next = currentChunk->next->next;
-        }
-
-
-        currentChunk = currentChunk->next;
-    }
-}
-*/
-
 /* The following pseudocode was provided to us in Recitation: 
 
     void myfree(void ptr) {
@@ -183,3 +139,46 @@ void myfree(void *ptr, char *file, int line) {
         start = start->next;
     }
 }
+/* Kaileb's version of free
+void myfree(void *ptr, char *file, int line) {
+    // Attempting to free a NULL Pointer Error
+    if(!ptr) {
+        printf("ERROR: Attempting to free a NULL pointer. (%s:%d)\n", __FILE__, __LINE__);
+        return;
+    }
+
+
+    // Get a pointer to the metadata
+    Chunk *chunkToFree = (Chunk*)ptr - 1; //casts ptr to Chunk* and moves the ptr back by the size of one Chunk structure
+
+    // Check if the pointer is at the start of a chunk
+    if((char*)chunkToFree < (char*)memory || (char*)chunkToFree >= (char*)memory + MEMLENGTH) {
+        printf("ERROR: Attempting to free a pointer outside the memory heap. (%s:%d)\n", __FILE__, __LINE__);
+        return;
+    }
+
+
+    // Check if the chunk is already free
+    if(!chunkToFree->isAllocated) {
+        printf("ERROR: Attempting to free a pointer that is already freed. (%s:%d)\n", __FILE__, __LINE__);
+        return;
+    }
+
+
+    // Mark the chunk as free;
+    chunkToFree->isAllocated = 0;
+   
+    // Coalesce free blocks
+    Chunk *currentChunk = (Chunk*)memory;
+    while(currentChunk != NULL && currentChunk->next != NULL) { //iterates through the chunks untill you reach the end of the memory heap
+        if(!currentChunk->isAllocated && !currentChunk->next->isAllocated) {
+            // Merge current chunk with the next chunk
+            currentChunk->chunkDataSize += currentChunk->next->chunkDataSize + sizeof(Chunk);
+            currentChunk->next = currentChunk->next->next;
+        }
+
+
+        currentChunk = currentChunk->next;
+    }
+}
+*/
