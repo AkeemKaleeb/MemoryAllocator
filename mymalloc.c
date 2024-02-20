@@ -71,6 +71,8 @@ void* mymalloc(size_t size, char *file, int line) {             // function to a
 // Free Memory
 //needs to deal with 3 errors: calling free with an address not obtained from malloc, calling free with an address not
 //at the start of the chunk, calling free a second time on the same pointer 
+
+/* Kaileb's version of free
 void myfree(void *ptr, char *file, int line) {
     // Attempting to free a NULL Pointer Error
     if(!ptr) {
@@ -112,7 +114,10 @@ void myfree(void *ptr, char *file, int line) {
         currentChunk = currentChunk->next;
     }
 }
-    /*
+*/
+
+/* The following pseudocode was provided to us in Recitation: 
+
     void myfree(void ptr) {
     charstart = memoryStart;
 
@@ -140,21 +145,41 @@ void myfree(void *ptr, char *file, int line) {
 
     exitWithError("Pointer not in heap");
 }
-    */
-    /*
-    void myfree2(void *ptr, char *file, int line) {
+*/
+    
+//my version of free
+void myfree(void *ptr, char *file, int line) {
     // Attempting to free a NULL Pointer Error
-   
-    Chunk* start = (Chunk*) memory;  //start points to the start of the memory heap
-    while (start < (memory + MEMLENGTH)){
-        //merge adjacent block
-        if (start->isAllocated == 0 && start->next->isAllocated == 0){
-            start->chunkDataSize = start->size + start->next->size + Chunk.size;
-            start->next = start->next->next;
-        }
-        if (start ->)
+    Chunk* start = (Chunk*) memory;  //start points to the beginning of the portion of the memory array we are examining
+                                    //which increments as we traverse through the array
 
+    // Get a pointer to the metadata
+    Chunk *ptrChunk = (Chunk*)ptr - 1; //casts ptr to Chunk* and moves the ptr back by the size of one Chunk structure
 
+    while ( (char *) start < (char *) (memory + MEMLENGTH)){
+        //if the ptr block is adjacent to the starting block and both blocks are free
+        if (start->isAllocated == 0 && (char *) start-> next == (char *) ptrChunk && ptrChunk->isAllocated == 0){
+            //merge adjacent blocks <START> <PTR>
+            start->chunkDataSize += ptrChunk->chunkDataSize + sizeof(Chunk);
+            start->next = ptrChunk->next;
+            ptrChunk->isAllocated = 0;
+            if (start->isAllocated == 0 && ptrChunk->next->isAllocated == 0){
+                //merge adjacent blocks <PTR> <NEXT>
+                start->chunkDataSize += ptrChunk->next->chunkDataSize + sizeof(Chunk);
+                start->next = ptrChunk->next->next;
+                //DELETE //ptrChunk->next->isAllocated = 0;
+                return;
+            }
         }
+        if ((char *) start == (char *)ptrChunk){
+            if (ptrChunk->next->isAllocated == 0){ 
+                //merge adjacent blocks <PTR> <NEXT>
+                ptrChunk->chunkDataSize += ptrChunk->next->chunkDataSize + sizeof(Chunk);
+                ptrChunk->next = ptrChunk->next->next;
+                ptrChunk->isAllocated = 0;
+                //DELETE //ptrChunk->next->isAllocated = 0;
+            }
+        }
+        start = start->next;
     }
-    */
+}
