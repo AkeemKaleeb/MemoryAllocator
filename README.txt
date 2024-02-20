@@ -8,6 +8,11 @@ NETIDs: ss4515 and kjc265
 For this project, we created our own implementation of the mallloc library, writing both malloc and free.
 To run this program, type "make" in the terminal and hit enter. 
 
+<<<<<<< Updated upstream
+=======
+Error detection is handled with a printf statement to the console that includes the file and line location of where the error occured.
+
+>>>>>>> Stashed changes
 Test1(), Test2(), and Test3() are the provided test cases in the document and are as follows:
 Test1(): malloc() and immediately free() a 1-byte object, 120 times
 Test2(): Use malloc() to get 120 1-byte objects, storing the pointers in an array, then use free() to deallocate the chunks.
