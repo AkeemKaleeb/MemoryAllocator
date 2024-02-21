@@ -9,9 +9,9 @@
 #include "mymalloc.h"
 #endif
 
-#define MEMSIZE 512
+#define MEMSIZE 4096
 #define HEADERSIZE 16
-#define OBJECTS 16
+#define OBJECTS 64
 #define OBJSIZE (MEMSIZE / OBJECTS - HEADERSIZE)
 
 int main(int argc, char **argv)
@@ -27,7 +27,6 @@ int main(int argc, char **argv)
 	// fill each object with distinct bytes
 	for (i = 0; i < OBJECTS; i++) {
 		memset(obj[i], i, OBJSIZE);
-		printf("obj[%d]: %d\n", i, *obj[i]);
 	}
 	
 	// check that all objects contain the correct bytes
@@ -41,6 +40,6 @@ int main(int argc, char **argv)
 	}
 	
 	printf("%d incorrect bytes\n", errors);
-
+	
 	return EXIT_SUCCESS;
 }

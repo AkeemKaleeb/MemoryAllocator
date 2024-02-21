@@ -1,4 +1,4 @@
-CC=gcc
+CC=gcc 
 CFLAGS=-g -Wall -fsanitize=address -std=c99
 
 memgrind: memgrind.o mymalloc.o 

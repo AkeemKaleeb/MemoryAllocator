@@ -111,11 +111,48 @@ void test5() {
     }
 }
 
+void memtest() {
+    #define MEMSIZE 4096
+    #define HEADERSIZE 16
+    #define OBJECTS 64
+    #define OBJSIZE (MEMSIZE / OBJECTS - HEADERSIZE)
+
+	char *obj[OBJECTS];
+	int i, j, errors = 0;
+	
+	// fill memory with objects
+	for (i = 0; i < OBJECTS; i++) {
+		obj[i] = malloc(OBJSIZE);
+	}
+	
+	// fill each object with distinct bytes
+	for (i = 0; i < OBJECTS; i++) {
+		memset(obj[i], i, OBJSIZE);
+	}
+	
+	// check that all objects contain the correct bytes
+	for (i = 0; i < OBJECTS; i++) {
+		for (j = 0; j < OBJSIZE; j++) {
+			if (obj[i][j] != i) {
+				errors++;
+				printf("Object %d byte %d incorrect: %d\n", i, j, obj[i][j]);
+			}
+		}
+	}
+	
+	printf("%d incorrect bytes\n", errors);
+	
+	return EXIT_SUCCESS;
+
+}
+
 int main(int argc, char **argv)
 {
     int counter = 0;
     int time = gettimeofday();
     float times[] = {5};
+
+    memtest();
 
     while(counter < 50) {
 	    test1();
@@ -123,7 +160,7 @@ int main(int argc, char **argv)
     times[0] = (gettimeofday() - time)/2;
     counter = 0;
 
-    /*while(counter < 50) {
+    while(counter < 50) {
 	    test2();
     }
     times[1] = (gettimeofday() - time)/2;
@@ -146,8 +183,9 @@ int main(int argc, char **argv)
     }
     times[4] = (gettimeofday() - time)/2;
     counter = 0;
-*/
+
     for(int i = 0; i < 5; i++) {
         printf("Average time for test%d(): %f\n", i, times[i]);
     }
 }
+
