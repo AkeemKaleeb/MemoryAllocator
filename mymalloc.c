@@ -10,7 +10,7 @@
 
 #define MEMLENGTH 80            // Default memory size in 8 byte chunks
 static double memory[MEMLENGTH];   // Memory heap of 8 byte sections
-int spaceRemaining = MEMLENGTH; //this is a global variable and we will remove it later
+int spaceRemaining = MEMLENGTH; //this is a global variable and we will REMOVE it later
 
 
 typedef struct Metadata {       // 16 byte struct to store the metadata //aka 2 objects in the memory array
@@ -20,6 +20,20 @@ typedef struct Metadata {       // 16 byte struct to store the metadata //aka 2 
     struct Metadata *next;      // 8 bytes : points to the next metadata header
 } Chunk;
 
+//print the contents of each Chunk Metadata
+void printChunk (Chunk* ptr) {
+    printf("\n** Printing Chunk ***\n");
+    printf("isAllocated?: %c\n", ptr->isAllocated);
+    printf("chunkDataSize: %hu objects, aka %d bytes\n", ptr->chunkDataSize, (ptr->chunkDataSize * 8));
+
+    char* memoryStart = (char *) memory;
+    char* memoryEnd = (char *) memory + MEMLENGTH * 8;
+    printf ("memory Start: %p", (void *) memoryStart);
+    printf ("\nmemory End: %p\n", (void *) memoryEnd);
+
+    printf("Address of Chunk: %p\n", (void *) ptr);
+    printf("Address of next Chunk Header: %p\n\n", (void *) ptr->next);
+}
 void* mymalloc(size_t size, char *file, int line) {                 // function to allocate memory in 8 byte chunks to the heap
 
     printf ("Mallocing an object!\n");
@@ -29,8 +43,8 @@ void* mymalloc(size_t size, char *file, int line) {                 // function 
     
     char* memoryStart = (char *) memory;
     char* memoryEnd = (char *) memory + MEMLENGTH * 8;
-    printf ("memory Start: %p", (void *) memoryStart);
-    printf ("\nmemory End: %p\n", (void *) memoryEnd);
+    //printf ("memory Start: %p", (void *) memoryStart);
+    //printf ("\nmemory End: %p\n", (void *) memoryEnd);
 
     //Initialization:
     Chunk *firstChunk = (Chunk*)memory;
@@ -46,10 +60,10 @@ void* mymalloc(size_t size, char *file, int line) {                 // function 
         firstChunk->next->isAllocated = 0;
         firstChunk->next->next = NULL;
 
-        printf("First Chunk Allocated. Size: %d Objects\n", firstChunk->chunkDataSize);
+        printf("First Chunk Allocated.\n");
+        printChunk(firstChunk);
         spaceRemaining -= firstChunk->chunkDataSize;
         printf("Space Remaining in the Array: %d Objects", spaceRemaining);
-        printf("\nAddress of First Chunk: %p \n\n", (void *) firstChunk);
         return (void *)(firstChunk + 1);
     }
 
@@ -69,13 +83,14 @@ void* mymalloc(size_t size, char *file, int line) {                 // function 
                 newChunk->next = start->next;                                       
                 start->next = newChunk;
                 start->chunkDataSize = alignedSize - headerSize;
-                printf("New Chunk Created by Splitting Current Chunk!");
+                printf("New Chunk Created by Splitting Current Chunk!\n");
                 }
             }
 
             start->isAllocated = 1;                                                   
-            printf("Allocated chunk!");
-            printf("\nAddress of Current Chunk: %p \n\n", (void *) start);
+            printf("Allocated chunk!\n");
+            //printf("\nAddress of Current Chunk: %p \n\n", (void *) start);
+            printChunk(start);
             spaceRemaining -= start->chunkDataSize;
             printf("Space Remaining in the Array: %d Objects", spaceRemaining);
             return (void *)(start + 1);                                               
