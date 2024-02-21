@@ -123,7 +123,7 @@ int main(int argc, char **argv)
     times[0] = (gettimeofday() - time)/2;
     counter = 0;
 
-    while(counter < 50) {
+    /*while(counter < 50) {
 	    test2();
     }
     times[1] = (gettimeofday() - time)/2;
@@ -146,7 +146,7 @@ int main(int argc, char **argv)
     }
     times[4] = (gettimeofday() - time)/2;
     counter = 0;
-
+*/
     for(int i = 0; i < 5; i++) {
         printf("Average time for test%d(): %f\n", i, times[i]);
     }
