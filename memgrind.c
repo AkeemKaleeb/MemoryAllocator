@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/time.h>
 
 
 // Compile with -DREALMALLOC to use the real malloc() instead of mymalloc()
@@ -14,10 +15,10 @@
 void test1() {
     for(int i = 0; i < 120; i++) {
         void *ptr = malloc(1);
-        printf("obj[%d] is allocated: %d\n", i, *((char*)ptr - 16));
+        //printf("obj[%d] is allocated: %d\n", i, *((char*)ptr - 16));
 
         free(ptr);
-        printf("obj[%d] is allocated: %d\n", i, *((char*)ptr - 16));
+        //printf("obj[%d] is freed: %d\n", i, *((char*)ptr - 16));
     }
 }
 
@@ -27,13 +28,18 @@ void test2() {
 
     for (int i = 0; i < 120; i++) {
 		obj[i] = malloc(1);
-        printf("obj[%d] is allocated: %d\n", i, *((char*)obj[i] - 16));
+        //printf("obj[%d] is allocated: %d\n", i, *((char*)obj[i] - 16));
 	}
 
     for(int i = 0; i < 120; i++) {
 		free(obj[i]);
-        printf("obj[%d] is allocated: %d\n", i, *((char*)obj[i] - 16));
+        //printf("obj[%d] is freed: %d\n", i, *((char*)obj[i] - 16));
 	}
+}
+
+// helper function for test 3, generates a random number between max and min values
+int randInRange(int min, int max) {
+    return min + (int) (rand() / (double) (RAND_MAX + 1) * (max - min + 1));
 }
 
 // Create an array of 120 pointers. Repeatedly make a random choice between allocating a 1-byte
@@ -63,11 +69,6 @@ void test3() {
             free(obj[i]);
         }
     }
-}
-
-// helper function for test 3, generates a random number between max and min values
-int randInRange(int min, int max) {
-    return min+ (int) (rand() / (double) (RAND_MAX + 1) * (max - min + 1));
 }
 
 // Allocates 120 chunks and frees them in reverse, every other order
@@ -111,43 +112,59 @@ void test5() {
     }
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     int counter = 0;
-    int time = gettimeofday();
-    float times[] = {5};
+    struct timeval start_time, end_time;
+    float times[5] = {0}; // Initialize to 0
 
-    while(counter < 50) {
-	    test1();
+    gettimeofday(&start_time, NULL);
+    while (counter < 5) {
+        test1();
+        counter++;
     }
-    times[0] = (gettimeofday() - time)/2;
+    gettimeofday(&end_time, NULL);
+    times[0] = (float)((end_time.tv_sec - start_time.tv_sec) * 1000000 + (end_time.tv_usec - start_time.tv_usec)) / 5;
     counter = 0;
 
-    while(counter < 50) {
-	    test2();
+    gettimeofday(&start_time, NULL);
+    while (counter < 5) {
+        test2();
+        counter++;
     }
-    times[1] = (gettimeofday() - time)/2;
+    gettimeofday(&end_time, NULL);
+    times[1] = (float)((end_time.tv_sec - start_time.tv_sec) * 1000000 + (end_time.tv_usec - start_time.tv_usec)) / 5;
     counter = 0;
 
-    while(counter < 50) {
-	    test3();
+    gettimeofday(&start_time, NULL);
+    while (counter < 5) {
+        test3();
+        counter++;
     }
-    times[2] = (gettimeofday() - time)/2;
+    gettimeofday(&end_time, NULL);
+    times[3] = (float)((end_time.tv_sec - start_time.tv_sec) * 1000000 + (end_time.tv_usec - start_time.tv_usec)) / 5;
     counter = 0;
 
-    while(counter < 50) {
-	    test4();
+    gettimeofday(&start_time, NULL);
+    while (counter < 5) {
+        test4();
+        counter++;
     }
-    times[3] = (gettimeofday() - time)/2;
+    gettimeofday(&end_time, NULL);
+    times[3] = (float)((end_time.tv_sec - start_time.tv_sec) * 1000000 + (end_time.tv_usec - start_time.tv_usec)) / 5;
     counter = 0;
 
-    while(counter < 50) {
-	    test5();
+    gettimeofday(&start_time, NULL);
+    while (counter < 5) {
+        test5();
+        counter++;
     }
-    times[4] = (gettimeofday() - time)/2;
+    gettimeofday(&end_time, NULL);
+    times[4] = (float)((end_time.tv_sec - start_time.tv_sec) * 1000000 + (end_time.tv_usec - start_time.tv_usec)) / 5;
     counter = 0;
 
-    for(int i = 0; i < 5; i++) {
-        printf("Average time for test%d(): %f\n", i, times[i]);
+    for (int i = 0; i < 5; i++) {
+        printf("Average time for test%d(): %f microseconds\n", i + 1, times[i]);
     }
+
+    return 0;
 }
