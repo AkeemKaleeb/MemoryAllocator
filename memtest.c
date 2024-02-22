@@ -1,3 +1,9 @@
+// Shreya Shukla & Kaileb Cole
+// CS 214: Systems Programming
+// Professor Menendez
+// Programming Assignment #1
+// 02-19-2024
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -9,20 +15,22 @@
 #include "mymalloc.h"
 #endif
 
-#define MEMSIZE 640
+#define MEMSIZE 4096 //640
 #define HEADERSIZE 16
-#define OBJECTS 10
+#define OBJECTS 64
 #define OBJSIZE (MEMSIZE / OBJECTS - HEADERSIZE)
+//objsize is 49.2 ->54
 
 int main(int argc, char **argv)
 {
-	printf("Objsize is %d bytes\n", OBJSIZE); //prints out the number of bytes in each object 
+	//printf("Objsize is %d bytes\n", OBJSIZE); //prints out the number of bytes in each object 
 	char *obj[OBJECTS]; 
 	int i, j, errors = 0;
 	
 	// fill memory with objects
 	for (i = 0; i < OBJECTS; i++) {
-		printf ("\n\nMallocing object no. %d!\n", i);
+		//printf("\n*****************************************************************************************************************************************");
+		//printf ("\n\nMallocing object no. %d!\n", i);
 		obj[i] = malloc(OBJSIZE); //mallocing each object in the array
 	}
 	
