@@ -90,15 +90,18 @@ void test4() {
 }
 
 void test5() {
+    /*
     int x;
-    char *obj[120];
     int *p = malloc(sizeof(int)*2);
     int *q = p;
 
-    //free(&x);
-    //free(p + 1);
-    //free(p);
-    //free(q);
+    free(&x);
+    free(p + 1);
+    free(p);
+    free(q);
+    */
+   
+    char *obj[120];
 
     for (int i = 0; i < 64; i++) {
 		obj[i] = malloc(1);
@@ -113,61 +116,50 @@ void test5() {
 }
 
 int main(int argc, char **argv) {
-    int counter = 0;
     struct timeval start_time, end_time;
-    float times[5] = {0}; // Initialize to 0
+    float times[50] = {0}; // Initialize to 0
     
     gettimeofday(&start_time, NULL);
-    while (counter < 5) {
+    for (int i = 0; i < 50; i++) {
         test1();
-        counter++;
     }
     gettimeofday(&end_time, NULL);
-    times[0] = (float)((end_time.tv_sec - start_time.tv_sec) * 1000000 + (end_time.tv_usec - start_time.tv_usec)) / 5;
-    printf("Time: %f microseconds\n", times[0]);
-    counter = 0;
+    times[0] = (float)((end_time.tv_sec - start_time.tv_sec) * 1000000 + (end_time.tv_usec - start_time.tv_usec)) / 50;
+    //printf("Time: %f microseconds\n", times[0]);
     
     gettimeofday(&start_time, NULL);
-    while (counter < 5) {
+    for (int i = 0; i < 50; i++) {
         test2();
-        counter++;
     }
     gettimeofday(&end_time, NULL);
-    times[1] = (float)((end_time.tv_sec - start_time.tv_sec) * 1000000 + (end_time.tv_usec - start_time.tv_usec)) / 5;
-    printf("Time: %f microseconds\n", times[1]);
-    counter = 0;
+    times[1] = (float)((end_time.tv_sec - start_time.tv_sec) * 1000000 + (end_time.tv_usec - start_time.tv_usec)) / 50;
+    //printf("Time: %f microseconds\n", times[1]);
     
     gettimeofday(&start_time, NULL);
-    while (counter < 5) {
+    for (int i = 0; i < 50; i++) {
         test3();
-        counter++;
     }
     
     gettimeofday(&end_time, NULL);
-    times[2] = (float)((end_time.tv_sec - start_time.tv_sec) * 1000000 + (end_time.tv_usec - start_time.tv_usec)) / 5;
-    printf("Time: %f microseconds\n", times[2]);
-    counter = 0;
+    times[2] = (float)((end_time.tv_sec - start_time.tv_sec) * 1000000 + (end_time.tv_usec - start_time.tv_usec)) / 50;
+    //printf("Time: %f microseconds\n", times[2]);
     
     gettimeofday(&start_time, NULL);
-    while (counter < 5) {
+    for (int i = 0; i < 50; i++) {
         test4();
-        counter++;
     }
     gettimeofday(&end_time, NULL);
-    times[3] = (float)((end_time.tv_sec - start_time.tv_sec) * 1000000 + (end_time.tv_usec - start_time.tv_usec)) / 5;
-    printf("Time: %f microseconds\n", times[3]);
-    counter = 0;
+    times[3] = (float)((end_time.tv_sec - start_time.tv_sec) * 1000000 + (end_time.tv_usec - start_time.tv_usec)) / 50;
+    //printf("Time: %f microseconds\n", times[3]);
     
     gettimeofday(&start_time, NULL);
-    while (counter < 5) {
+    for (int i = 0; i < 50; i++) {
         test5();
-        counter++;
     }
     gettimeofday(&end_time, NULL);
 
-    times[4] = (float)((end_time.tv_sec - start_time.tv_sec) * 1000000 + (end_time.tv_usec - start_time.tv_usec)) / 5;
-    printf("Time: %f microseconds\n", times[4]);
-    counter = 0;
+    times[4] = (float)((end_time.tv_sec - start_time.tv_sec) * 1000000 + (end_time.tv_usec - start_time.tv_usec)) / 50;
+    //printf("Time: %f microseconds\n", times[4]);
 
     for (int i = 0; i < 5; i++) {
         printf("Average time for test%d(): %f microseconds\n", i + 1, times[i]);
