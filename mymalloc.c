@@ -9,7 +9,7 @@
 #include "mymalloc.h"
 #include <string.h>
 
-#define MEMLENGTH 80                // Default memory size in 8 byte chunks
+#define MEMLENGTH 512                // Default memory size in 8 byte chunks
 static double memory[MEMLENGTH];   // Memory heap of 8 byte sections
 int spaceRemaining = MEMLENGTH;     //this is a global variable and we will REMOVE it later
 
@@ -33,7 +33,8 @@ void printChunk (Chunk* ptr) {
     printf ("\nmemory End: %p\n", (void *) memoryEnd);
 
     printf("Address of Chunk: %p\n", (void *) ptr);
-    printf("Address of next Chunk Header: %p\n\n", (void *) ptr->next);
+    printf("Address of next Chunk Header: %p\n", (void *) ptr->next);
+    printf("Difference between next and current Chunks: %p\n\n", (void *)(ptr->next - ptr));
 }
 void* mymalloc(size_t size, char *file, int line) {                 // function to allocate memory in 8 byte chunks to the heap
 
@@ -57,7 +58,7 @@ void* mymalloc(size_t size, char *file, int line) {                 // function 
         firstChunk->isAllocated = 1;               
 
         //Split the entire array:
-        firstChunk->next = (Chunk*) (memory + alignedSize * 8); //assigns next Chunk
+        firstChunk->next = ((void *) memory + alignedSize * 8); //assigns next Chunk
         firstChunk->next->chunkDataSize = MEMLENGTH - alignedSize;
         firstChunk->next->isAllocated = 0;
         firstChunk->next->next = NULL;
@@ -75,11 +76,11 @@ void* mymalloc(size_t size, char *file, int line) {                 // function 
         if(!start->isAllocated && start->chunkDataSize >= alignedSize) {            
             
             if(start->chunkDataSize >= (alignedSize + headerSize)) {//if there is extra space to create another Chunk              
-                printf("Splitting chunk!\n");
-                printf ("start address: %p\n", (void *) memory);
-                Chunk *newChunk = (Chunk*)(start + 64);
-                printf ("newChunk address: %p\n", (void *) newChunk);
-                printf ("memory end: %p\n", (void*) memory + (sizeof(memory)));
+                printf("SPLITTING CHUNK!\n");
+                //printf ("start address: %p\n", (void *) memory);
+                Chunk *newChunk = ((void *) start + alignedSize * 8);
+                //printf ("newChunk address: %p\n", (void *) newChunk);
+                //printf ("memory end: %p\n", (void*) memory + (sizeof(memory)));
                 
                 if ((char *) newChunk < ((char *) memory + sizeof(memory))) {
                     printf ("The newChunk is within bounds!\n");
@@ -90,15 +91,15 @@ void* mymalloc(size_t size, char *file, int line) {                 // function 
                     start->next = newChunk;
                     start->chunkDataSize = alignedSize;
                     printf("New Chunk Created by Splitting Current Chunk!\n");
-                    printf("Printing contents of new chunk down below!\n");
-                    printChunk(newChunk);
+                    //printf("\nPrinting contents of new chunk down below!\n");
+                    //printChunk(newChunk);
                 }
             }
 
             start->isAllocated = 1;                                                   
             printf("Allocated chunk!\n");
             //printf("\nAddress of Current Chunk: %p \n\n", (void *) start);
-            printf("Printing contents of the allocated chunk down below!\n");
+            printf("\nPrinting contents of the allocated chunk down below!\n");
             printChunk(start);
             spaceRemaining -= start->chunkDataSize;
             printf("Space Remaining in the Array: %d Objects", spaceRemaining);
