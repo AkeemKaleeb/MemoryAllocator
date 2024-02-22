@@ -16,3 +16,22 @@ Test3(): Create an array of 120 pointers. Repeatedly make a random choice betwee
 Finally, Test4() and Test5() are of our own creation and are as follows:
 Test4(): Allocates 120 chunks of 1 byte memory to the heap and deallocates them, in reverse, every other chunk order
 Test5(): Tests the error handling of the entire program , specifically the detectable errors provided in the Assignment by allocating, and freeing in imporper order followed by more allocation
+
+//as per menny we fixed the state invariance and ensured the memory size stays constant
+//menny told me to just use a for loop instead of a while loop in memgrind.c so that I don't have to write 
+//also we can assume that the number of objects we are allocating is a multiple of 2
+
+//menny has instructed to me to add some sanity tests on top of my performance tests
+//try allocating only one object?? (not sure if this is what he meant)
+//update README
+
+
+//alllocate all of memory now it should
+//allocate all of memory and then free it and then try an allocation it should work
+//testing coalesce
+//allocate all of memory in 4 block X0X0 XXXX and it should work
+//trying a bunch
+//4080 bytes
+//memsize 512 -> 1024
+
+//make sure malloc does not overlapp any other object//
