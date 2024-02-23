@@ -125,7 +125,7 @@ void* mymalloc(size_t size, char *file, int line) {                 // function 
         start = start->next;              //Moves to the next chunk in the memory heap
     }
 
-    printf("ERROR: Space not available (%s:%d)\n", __FILE__, __LINE__);
+    printf("ERROR: Space not available (%s:%d)\n", file, line);
     return NULL;
 }
 
@@ -138,7 +138,7 @@ void myfree(void *ptr, char *file, int line) {
     printTotalChunkDataSize();
     // Attempting to free a NULL Pointer Error
     if(!ptr) {
-        printf("ERROR: Attempting to free a NULL pointer. (%s:%d)\n", __FILE__, __LINE__);
+        printf("ERROR: Attempting to free a NULL pointer. (%s:%d)\n", file, line);
         return;
     }
 
@@ -151,13 +151,13 @@ void myfree(void *ptr, char *file, int line) {
 
     // Check if the pointer is out of range (before the start of the memory or after the end of memory)
     if((char*)ptrChunk< (char*)memory || (char*)ptrChunk >= (char*)(memory + MEMLENGTH * 8)) {
-        printf("ERROR: Attempting to free a pointer outside the memory heap. (%s:%d)\n", __FILE__, __LINE__);
+        printf("ERROR: Attempting to free a pointer outside the memory heap. (%s:%d)\n", file, line);
         return;
     }
 
     // Check if the chunk is already free
     if(!ptrChunk->isAllocated) {
-        printf("ERROR: Attempting to free a pointer that is already freed. (%s:%d)\n", __FILE__, __LINE__);
+        printf("ERROR: Attempting to free a pointer that is already freed. (%s:%d)\n", file, line);
         return;
     }
 
@@ -186,7 +186,7 @@ void myfree(void *ptr, char *file, int line) {
         }
 
         if ((char *) start == (char *)ptrChunk){
-            if (ptrChunk->next->isAllocated == 0){ 
+            if ((ptrChunk->next != NULL) && ptrChunk->next->isAllocated == 0){ 
                 
                 //merge adjacent blocks <PTR> <NEXT>
                 ptrChunk->chunkDataSize += ptrChunk->next->chunkDataSize; //+ headerSize;
@@ -197,6 +197,6 @@ void myfree(void *ptr, char *file, int line) {
         }
         start = start->next;
     }
-    printf ("ERROR: The specified pointer was not found in heap.(%s:%d)\n", __FILE__, __LINE__);
+    printf ("ERROR: The specified pointer was not found in heap.(%s:%d)\n", file, line);
     return;
 }
