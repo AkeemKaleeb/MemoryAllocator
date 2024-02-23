@@ -1,3 +1,9 @@
+// Shreya Shukla & Kaileb Cole
+// CS 214: Systems Programming
+// Professor Menendez
+// Programming Assignment #1
+// 02-19-2024
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -90,16 +96,6 @@ void test4() {
 }
 
 void test5() {
-    /*
-    int x;
-    int *p = malloc(sizeof(int)*2);
-    int *q = p;
-
-    free(&x);
-    free(p + 1);
-    free(p);
-    free(q);
-    */
    
     char *obj[120];
 
