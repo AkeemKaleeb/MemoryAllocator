@@ -11,9 +11,8 @@
 
 #define MEMLENGTH 512               // Default memory size in 8 byte chunks
 static double memory[MEMLENGTH];    // Memory heap of 8 byte sections
-//int spaceRemaining = MEMLENGTH;     //this is a global variable and we will REMOVE it later
 
-
+// the Chunk datatype represents the header/metadata of each payload
 typedef struct Metadata {       // 16 byte struct to store the metadata //aka 2 objects in the memory array
     char isAllocated;           // 1 bytes: 0 (free), 1(allocated)
     char padding0[5];           // 5 bytes of padding to total 16 byte struct
@@ -28,10 +27,10 @@ void printTotalChunkDataSize (){
     Chunk * start = (Chunk*) memory;
     //printf("\n-------\n");
     while (start!= NULL && ( (char *) start < ((char *) memory + sizeof(memory)))){
-        sum += start->chunkDataSize;
+        sum += start->chunkDataSize; //add up the sum of all the objects in the array
         char* A = (char *) start -> next;
         char* B= (char *) start + start->chunkDataSize * 8;
-        if (A!=B && A != NULL){
+        if (A!=B && A != NULL){ //checking to make sure the next chunk is allocated at the correct address
             printf("A not equal to B\n");
             printf("A: %p\n", A);
             printf("B: %p\n", B);
@@ -41,14 +40,14 @@ void printTotalChunkDataSize (){
         start = start -> next;
         i++;
     }
-    if (sum != 512){
+    if (sum != MEMLENGTH){
         printf ("Sum of heap is not equal to size of individual chunks\n");
         printf("Total heap size is: %d\n", sum);
         abort();
     }
 
 }
-//print the contents of each Chunk Metadata
+//print the contents of each Chunk aka Metadata
 void printChunk (Chunk* ptr) {
     printf("\n** Printing Chunk ***\n");
     printf("isAllocated?: %s\n", ptr->isAllocated ? "TRUE" : "FALSE");
@@ -63,6 +62,8 @@ void printChunk (Chunk* ptr) {
     printf("Address of next Chunk Header: %p\n", (void *) ptr->next);
     printf("Difference between next and current Chunks: %p\n\n", (void *)(ptr->next - ptr));
 }
+
+//prints all the location of all the Metadata objects (Chunks) in the memory array
 void printAllChunks (){
     Chunk * start = (Chunk *) memory;
     while (!(start == NULL) && ( (char *) start < ((char *) memory + sizeof(memory)))){
@@ -72,65 +73,58 @@ void printAllChunks (){
 }
 void* mymalloc(size_t size, char *file, int line) {                 // function to allocate memory in 8 byte chunks to the heap
     //printf ("Mallocing an object!\n");
-    //printf ("Space for %d objects in the array!\n", spaceRemaining);
     size_t alignedSize = ((size + sizeof(Chunk) + 7) & ~7) /8;      // round up to the nearest multiple of 8 for allignment including metadata
     int headerSize = sizeof(Chunk) / 8;                             // headerSize should be 2 objects, since 16 bytes = 2 doubles
-    //printf("Aligned Size: %zu\n", alignedSize);
 
     //Initialization:
     Chunk *firstChunk = (Chunk*)memory;
-
     if(!firstChunk->isAllocated && firstChunk->next == NULL && alignedSize != MEMLENGTH) {
 
-        firstChunk->chunkDataSize = alignedSize;                
-        firstChunk->isAllocated = 1;               
+        firstChunk->chunkDataSize = alignedSize;                    //assigns the first Chunk the amount of space needed for the current object                
+        firstChunk->isAllocated = 1;                                //sets the first Chunk as allocated
 
         //Split the entire array:
-        firstChunk->next = ((void *) memory + alignedSize * 8); //assigns next Chunk
-        firstChunk->next->chunkDataSize = MEMLENGTH - alignedSize;
-        firstChunk->next->isAllocated = 0;
-        firstChunk->next->next = NULL;
+        firstChunk->next = ((void *) memory + alignedSize * 8);     //assigns next Chunk
+        firstChunk->next->chunkDataSize = MEMLENGTH - alignedSize;  //sets the size of the Chunk to the remaining memory space
+        firstChunk->next->isAllocated = 0;                          //assigns next Chunk as free
+        firstChunk->next->next = NULL;                              //points to the end of the array
 
         //printf("First Chunk Allocated.\n");
         //printChunk(firstChunk);
-        // -= firstChunk->chunkDataSize;
-        //printf("Space Remaining in the Array: %d Objects", spaceRemaining);
-        return (void *)((char *) firstChunk + sizeof(Chunk));
+        return (void *)((char *) firstChunk + sizeof(Chunk));       //returns where the memory should be stored by adding sizeof(Chunk) bytes to the metadata address
     }
     printTotalChunkDataSize();
 
     Chunk *start = (Chunk*)memory;                                                 
-    while (!(start == NULL) && ( (char *) start < ((char *) memory + sizeof(memory)))){ //(!(start == NULL)) &&                   
+    while (!(start == NULL) && ( (char *) start < ((char *) memory + sizeof(memory)))){ //as long as start isn't NULL and is within the range of memory               
         
-        if(!start->isAllocated && start->chunkDataSize >= alignedSize) {            
+        if(!start->isAllocated && start->chunkDataSize >= alignedSize) {                //checks if start has enough space to assign memory for the object we are mallocing         
             
-            if(start->chunkDataSize >= (alignedSize + headerSize)) {//if there is extra space to create another Chunk              
+            if(start->chunkDataSize >= (alignedSize + headerSize)) {                    //if there is extra space to create another Chunk              
                 //printf("SPLITTING CHUNK!\n");
-                Chunk *newChunk = (Chunk *)((char *)start + alignedSize * 8);
+                Chunk *newChunk = (Chunk *)((char *)start + alignedSize * 8);           //create a new chunk
                 
-                if ((char *) newChunk < ((char *) memory + sizeof(memory))) {
+                if ((char *) newChunk < ((char *) memory + sizeof(memory))) {           //check if the newChunk is within the range of memory
                     //printf ("The newChunk is within bounds!\n");
-                    newChunk->chunkDataSize = start->chunkDataSize - alignedSize;       
-                    newChunk->isAllocated = 0;                                          
-                    newChunk->next = start->next;
+                    newChunk->chunkDataSize = start->chunkDataSize - alignedSize;       //assign newChunk the remaining space in current chunk
+                    newChunk->isAllocated = 0;                                          //set newChunk to be free
+                    newChunk->next = start->next;                                       //assign newChunk -> next
 
-                    start->next = newChunk;
-                    start->chunkDataSize = alignedSize;
+                    start->next = newChunk;                                             //start should point to newChunk
+                    start->chunkDataSize = alignedSize;                                 //start should have the alignedSize number of doubles
                     //printf("New Chunk Created by Splitting Current Chunk!\n");
                     //printf("\nPrinting contents of new chunk down below!\n");
                     //printChunk(newChunk);
                 }
             }
 
-            start->isAllocated = 1;                                                   
+            start->isAllocated = 1;                     //either way, set start to be allocated (not free)                                                   
             //printf("Allocated chunk!\n");
             //printf("\nPrinting contents of the allocated chunk down below!\n");
             //printChunk(start);
-            //spaceRemaining -= start->chunkDataSize;
-            //printf("Space Remaining in the Array: %d Objects", spaceRemaining);
-            return (void *)(start + 1);                                               
+            return (void *)(start + 1);                 //return the address where the memory will be allocated                        
         }
-        start = start->next;              //Moves to the next chunk in the memory heap
+        start = start->next;              //Moves to the next chunk (metadata) in the memory heap
     }
 
     printf("ERROR: Space not available (%s:%d)\n", file, line);
@@ -168,7 +162,7 @@ void myfree(void *ptr, char *file, int line) {
         return;
     }
     ptrChunk->isAllocated = 0; //marks pointer as free
-    int headerSize = sizeof(Chunk) / 8;                      //headerSize should be 2 objects, since 16 bytes = 2 doubles
+    //int headerSize = sizeof(Chunk) / 8;                      //headerSize should be 2 objects, since 16 bytes = 2 doubles
 
     // Attempting to free a NULL Pointer Error
     Chunk* start = (Chunk*) memory;  //start points to the beginning of the portion of the memory array we are examining
@@ -190,8 +184,8 @@ void myfree(void *ptr, char *file, int line) {
             return;
         }
 
-        if ((char *) start == (char *)ptrChunk){
-            if ((ptrChunk->next != NULL) && ptrChunk->next->isAllocated == 0){ 
+        if ((char *) start == (char *)ptrChunk){    //if the block we're currently looking at is the pointer we wanted to free
+            if ((ptrChunk->next != NULL) && ptrChunk->next->isAllocated == 0){  //coalesce
                 //merge adjacent blocks <PTR> <NEXT>
                 ptrChunk->chunkDataSize += ptrChunk->next->chunkDataSize;
                 ptrChunk->next = ptrChunk->next->next;
