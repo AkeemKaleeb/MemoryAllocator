@@ -9,9 +9,9 @@
 #include "mymalloc.h"
 #include <string.h>
 
-#define MEMLENGTH 512                // Default memory size in 8 byte chunks
-static double memory[MEMLENGTH];   // Memory heap of 8 byte sections
-int spaceRemaining = MEMLENGTH;     //this is a global variable and we will REMOVE it later
+#define MEMLENGTH 512               // Default memory size in 8 byte chunks
+static double memory[MEMLENGTH];    // Memory heap of 8 byte sections
+//int spaceRemaining = MEMLENGTH;     //this is a global variable and we will REMOVE it later
 
 
 typedef struct Metadata {       // 16 byte struct to store the metadata //aka 2 objects in the memory array
@@ -20,6 +20,7 @@ typedef struct Metadata {       // 16 byte struct to store the metadata //aka 2 
     short chunkDataSize;        // 2 bytes : chunkDataSize represents the size of the data plus the header
     struct Metadata *next;      // 8 bytes : points to the next metadata header
 } Chunk;
+
 //helper function to measure memory invariance
 void printTotalChunkDataSize (){
     int sum = 0; //total bytes
@@ -62,6 +63,13 @@ void printChunk (Chunk* ptr) {
     printf("Address of next Chunk Header: %p\n", (void *) ptr->next);
     printf("Difference between next and current Chunks: %p\n\n", (void *)(ptr->next - ptr));
 }
+void printAllChunks (){
+    Chunk * start = (Chunk *) memory;
+    while (!(start == NULL) && ( (char *) start < ((char *) memory + sizeof(memory)))){
+        printChunk (start);
+        start = start -> next;
+    }
+}
 void* mymalloc(size_t size, char *file, int line) {                 // function to allocate memory in 8 byte chunks to the heap
     //printf ("Mallocing an object!\n");
     //printf ("Space for %d objects in the array!\n", spaceRemaining);
@@ -72,7 +80,7 @@ void* mymalloc(size_t size, char *file, int line) {                 // function 
     //Initialization:
     Chunk *firstChunk = (Chunk*)memory;
 
-    if(!firstChunk->isAllocated && firstChunk->next == NULL) {
+    if(!firstChunk->isAllocated && firstChunk->next == NULL && alignedSize != MEMLENGTH) {
 
         firstChunk->chunkDataSize = alignedSize;                
         firstChunk->isAllocated = 1;               
@@ -85,14 +93,14 @@ void* mymalloc(size_t size, char *file, int line) {                 // function 
 
         //printf("First Chunk Allocated.\n");
         //printChunk(firstChunk);
-        spaceRemaining -= firstChunk->chunkDataSize;
+        // -= firstChunk->chunkDataSize;
         //printf("Space Remaining in the Array: %d Objects", spaceRemaining);
         return (void *)((char *) firstChunk + sizeof(Chunk));
     }
     printTotalChunkDataSize();
 
     Chunk *start = (Chunk*)memory;                                                 
-    while (( (char *) start < ((char *) memory + sizeof(memory)))){ //(!(start == NULL)) &&                   
+    while (!(start == NULL) && ( (char *) start < ((char *) memory + sizeof(memory)))){ //(!(start == NULL)) &&                   
         
         if(!start->isAllocated && start->chunkDataSize >= alignedSize) {            
             
@@ -118,7 +126,7 @@ void* mymalloc(size_t size, char *file, int line) {                 // function 
             //printf("Allocated chunk!\n");
             //printf("\nPrinting contents of the allocated chunk down below!\n");
             //printChunk(start);
-            spaceRemaining -= start->chunkDataSize;
+            //spaceRemaining -= start->chunkDataSize;
             //printf("Space Remaining in the Array: %d Objects", spaceRemaining);
             return (void *)(start + 1);                                               
         }
@@ -144,7 +152,6 @@ void myfree(void *ptr, char *file, int line) {
 
     // Get a pointer to the metadata
     Chunk *ptrChunk = (Chunk*)ptr - 1; //casts ptr to Chunk* and moves the ptr back by the size of one metadata structure
-
     // Print the memory addresses of ptrChunk and Chunk
     //printf("Memory address of ptrChunk: %p\n", (void*)ptrChunk);
     //printf("Memory address of ptr: %p\n", (void*)ptr);
@@ -160,7 +167,7 @@ void myfree(void *ptr, char *file, int line) {
         printf("ERROR: Attempting to free a pointer that is already freed. (%s:%d)\n", file, line);
         return;
     }
-
+    ptrChunk->isAllocated = 0; //marks pointer as free
     int headerSize = sizeof(Chunk) / 8;                      //headerSize should be 2 objects, since 16 bytes = 2 doubles
 
     // Attempting to free a NULL Pointer Error
@@ -170,15 +177,13 @@ void myfree(void *ptr, char *file, int line) {
     while ((start != NULL) && (char *) start < (char *) (memory + MEMLENGTH * 8)){
         //if the ptr block is adjacent to the starting block and both blocks are free
         if (start->isAllocated == 0 && (char *) start-> next == (char *) ptrChunk && ptrChunk->isAllocated == 0){
-            
-            //merge adjacent blocks <START> <PTR>
-            start->chunkDataSize += ptrChunk->chunkDataSize; //+ headerSize;
+            //merge aka coalesce adjacent blocks <START> <PTR>
+            start->chunkDataSize += ptrChunk->chunkDataSize;
             start->next = ptrChunk->next;
-            ptrChunk->isAllocated = 0;
-            if (start->isAllocated == 0 && ptrChunk->next->isAllocated == 0){
-                
+            //ptrChunk->isAllocated = 0;
+            if ((ptrChunk->next != NULL) && start->isAllocated == 0 && ptrChunk->next->isAllocated == 0){
                 //merge adjacent blocks <PTR> <NEXT>
-                start->chunkDataSize += ptrChunk->next->chunkDataSize; //+ headerSize;
+                start->chunkDataSize += ptrChunk->next->chunkDataSize;
                 start->next = ptrChunk->next->next;
             }
             ptrChunk = NULL; //invalidate pointer
@@ -187,12 +192,11 @@ void myfree(void *ptr, char *file, int line) {
 
         if ((char *) start == (char *)ptrChunk){
             if ((ptrChunk->next != NULL) && ptrChunk->next->isAllocated == 0){ 
-                
                 //merge adjacent blocks <PTR> <NEXT>
-                ptrChunk->chunkDataSize += ptrChunk->next->chunkDataSize; //+ headerSize;
+                ptrChunk->chunkDataSize += ptrChunk->next->chunkDataSize;
                 ptrChunk->next = ptrChunk->next->next;
             }
-            ptrChunk->isAllocated = 0; //marks pointer as free
+            //ptrChunk->isAllocated = 0; //marks pointer as free
             return;
         }
         start = start->next;
